@@ -26,7 +26,7 @@ namespace PoolOverSocks5
         public TcpClient relayClient;
 
         // the default buffer size for network transfers.
-        public Int32 buffersize = 1024; //bytes
+        public Int32 buffersize = 4096; //bytes
 
         public RelayHandler(ConfigurationHandler configuration)
         {
@@ -85,7 +85,7 @@ namespace PoolOverSocks5
                         if (handler.Available != 0) {
                             int bytesReceived = handler.Receive(bytes);
                             data = Encoding.ASCII.GetString(bytes, 0, bytesReceived);
-                            Console.WriteLine("MINER: '{0}'", data);
+                            Console.WriteLine("MINER SENT: '{0}'", data.Substring(0, data.Length - 2));
                             byte[] message = Encoding.ASCII.GetBytes(data);
                             relayClient.Client.Send(message);
                         }
@@ -107,7 +107,7 @@ namespace PoolOverSocks5
                             byte[] relayRecv = new byte[buffersize];
                             int bytesReceived = relayClient.Client.Receive(relayRecv);
                             String dataInFromProxy = Encoding.ASCII.GetString(relayRecv, 0, bytesReceived);
-                            Console.WriteLine("Socks5 Proxy: '{0}'", dataInFromProxy);
+                            Console.WriteLine("PROXY RESPONSE: '{0}'", dataInFromProxy.Substring(0, dataInFromProxy.Length - 2));
                             handler.Send(relayRecv, 0, bytesReceived, SocketFlags.None);
                         }
                     } else {
