@@ -1,4 +1,5 @@
 # PoolOverSocks5
+[![Build Status](https://travis-ci.org/Elycin/PoolOverSocks5.svg?branch=master)](https://travis-ci.org/Elycin/PoolOverSocks5)
 
 PoolOverSocks5 is a simple relay application that will create a local socket to foward pool data over a socks5 proxy, similar to `torsocks` for `tor`.
 
