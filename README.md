@@ -43,10 +43,12 @@ Contribution is always welcome in the form of a issue or a pull request to impro
 ---
 
 ### Building from source
- - clone the repository
- - install Visual Studio 2017 and .NET Core
- - load the project
-
+```bash
+git clone https://github.com/Elycin/PoolOverSocks5.git
+cd PoolOverSocks5/PoolOverSocks5
+dotnet restore
+dotnet build
+dotnet run pool_address:port proxy_address:port relay_address:port
 ---
 
 ### Todos
