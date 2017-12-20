@@ -10,8 +10,8 @@ PoolOverSocks5 is a simple relay application that will create a local socket to 
 Please make sure you have .NET Core installed.
 
 ```sh
-$ dotnet PoolOverSocks5.dll [pool address:port] [socks5 proxy address:port] [local address:port]
-$ dotnet PoolOverSocks5.dll pool.usxmrpool.com:3333 127.0.0.1:9050 127.0.0.1:3333
+$ dotnet run [pool address:port] [socks5 proxy address:port] [local address:port]
+$ dotnet run pool.usxmrpool.com:3333 127.0.0.1:9050 127.0.0.1:3333
 ```
 
 ![Demo working with XMR-Stak, and Tor](https://raw.githubusercontent.com/Elycin/PoolOverSocks5/master/PoolOverSocks5/images/xmr_stak_tor_demo.png)
