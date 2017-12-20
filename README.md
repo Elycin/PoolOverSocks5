@@ -49,6 +49,8 @@ cd PoolOverSocks5/PoolOverSocks5
 dotnet restore
 dotnet build
 dotnet run pool_address:port proxy_address:port relay_address:port
+```
+
 ---
 
 ### Todos
