@@ -64,7 +64,7 @@ namespace PoolOverSocks5
 
                 // Connect to the socks5 proxy
                 relayClientProxy = new Socks5ProxyClient(configuration.configuration.ProxyAddress, configuration.configuration.ProxyPort, "", "");
-                Console.WriteLine("Successfully connected to your Socks5 Proxy!");
+                Console.WriteLine("Successfully connected to your socks5 proxy!");
 
                 // Connect to the pool
                 relayClient = relayClientProxy.CreateConnection(configuration.configuration.PoolAddress, configuration.configuration.PoolPort);

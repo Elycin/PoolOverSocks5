@@ -30,8 +30,13 @@ namespace PoolOverSocks5
             "Error: Invalid amount of command line arguments specified.",
             "Please run the application in the following manner:",
             "", // whitespace.
-            "> dotnet PoolOverSocks5.dll \t [PoolAddress:port] \t\t [Socks5Address:port] \t\t [RelayAddress:port]",
-            "> dotnet PoolOverSocks5.dll \t pool.usxmrpool.com:3333 \t 127.0.0.1:9050 \t\t 127.0.0.1:3333",
+            "Examples:", // whitespace.
+            "> dotnet run \t [PoolAddress:port] \t\t [Socks5Address:port] \t\t [RelayAddress:port]",
+            "> dotnet run \t pool.usxmrpool.com:3333 \t 127.0.0.1:9050 \t\t 127.0.0.1:3333",
+            "> dotnet run \t pool.usxmrpool.com:3333 \t 5.135.194.50:3020 \t\t 127.0.0.1:3333",
+            "> dotnet run \t pool.usxmrpool.com:3333 \t 127.0.0.1:9050 \t\t 10.0.0.2:3333",
+            "> dotnet run \t pool.usxmrpool.com:3333 \t 127.0.0.1:9050 \t\t 192.168.1.2:3333",
+            "> dotnet run \t pool.usxmrpool.com:3333 \t 127.0.0.1:9050 \t\t 0.0.0.0:3333",
             "" // whitespace for printing the next object.
         };
 
