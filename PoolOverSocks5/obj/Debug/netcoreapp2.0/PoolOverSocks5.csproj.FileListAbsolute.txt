@@ -19,3 +19,4 @@ C:\Users\elyci\Documents\Visual Studio 2017\Projects\pooloversocks5\PoolOverSock
 C:\Users\elyci\Documents\Visual Studio 2017\Projects\pooloversocks5\PoolOverSocks5\obj\Debug\netcoreapp2.0\PoolOverSocks5.AssemblyInfo.cs
 C:\Users\elyci\Documents\Visual Studio 2017\Projects\pooloversocks5\PoolOverSocks5\obj\Debug\netcoreapp2.0\PoolOverSocks5.dll
 C:\Users\elyci\Documents\Visual Studio 2017\Projects\pooloversocks5\PoolOverSocks5\obj\Debug\netcoreapp2.0\PoolOverSocks5.pdb
+C:\Users\elyci\Documents\Visual Studio 2017\Projects\pooloversocks5\PoolOverSocks5\obj\Debug\netcoreapp2.0\PoolOverSocks5.csprojResolveAssemblyReference.cache

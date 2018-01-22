@@ -12,6 +12,8 @@ namespace PoolOverSocks5
         // Class Inheritance
         private ConfigurationHandler configuration;
 
+        private Int32 minerCount = 0;
+
         // TCP Socket for the whole class
         public TcpListener relay;
 
@@ -49,34 +51,58 @@ namespace PoolOverSocks5
         public void HandleClient(object obj)
         {
             TcpClient minerClient = (TcpClient)obj;
-            Socks5ProxyClient proxyClient;
-            TcpClient poolClient;
+            Socks5ProxyClient proxyClient = null;
+            TcpClient poolClient = null;
 
-            // Try to connect to the socks5 proxy
-            proxyClient = new Socks5ProxyClient(configuration.configuration.ProxyAddress, configuration.configuration.ProxyPort, "", "");
-            Program.LogResponderHandler("Application", "Successfully connected to your Socks5 proxy");
+            // Let the console know a miner is attempting to connect
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine("A miner is attempting to connect...");
+            minerCount += 1;
 
-            poolClient = proxyClient.CreateConnection(configuration.configuration.PoolAddress, configuration.configuration.PoolPort);
-            Program.LogResponderHandler("Application", "Successfully connected to your pool");
-
-            // Register a success
-            Program.LogResponderHandler("Application", "Your miner will now get the data from the pool over the socks5 proxy");
-
-            Thread.Sleep(500);
-
-            while (minerClient.Connected && poolClient.Connected)
+            try
             {
-                // Small sleep so we don't use 100% of the cpu
-                Thread.Sleep(10);
+                // Try to connect to the pool on the socks5 proxy
+                proxyClient = new Socks5ProxyClient(configuration.configuration.ProxyAddress, configuration.configuration.ProxyPort, "", "");
+                poolClient = proxyClient.CreateConnection(configuration.configuration.PoolAddress, configuration.configuration.PoolPort);
+                Console.WriteLine("Successfully connected to your pool!");
 
-                // Exchange the data.
-                ExchangeData(minerClient, poolClient);
+                // We can signal that the miner is ready to mine
+                Console.WriteLine("The new miner is ready to mine!");
+
+                // Print how many miners are attached.
+                Console.WriteLine(String.Format("There are currently {0} miner(s) connected.", minerCount));
+
+                // Lastly, reset the console color for now.
+                Console.ResetColor();
+
+                Thread.Sleep(500);
+
+                while (minerClient.Connected && poolClient.Connected)
+                {
+                    // Small sleep so we don't use 100% of the cpu
+                    Thread.Sleep(10);
+
+                    // Exchange the data.
+                    ExchangeData(minerClient, poolClient);
+                }
+            } catch (Exception e)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("Failed to connect to the pool or the socks5 proxy - miner will be dropped");
+                Console.ResetColor();
             }
 
             // Close all connections if it's open, this thread is done.
             SafeClose(minerClient);
             SafeClose(poolClient);
             SafeClose(proxyClient.TcpClient);
+
+            // Counter and debug.
+            minerCount -= 1;
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine("A miner has been disconnected.");
+            Console.WriteLine(String.Format("There are currently {0} miner(s) connected.", minerCount));
+            Console.ResetColor();
         }
 
         private void ExchangeData(TcpClient miner, TcpClient pool)
