@@ -77,7 +77,7 @@ namespace PoolOverSocks5
                 Console.ForegroundColor = ConsoleColor.Green;
 
                 // Print a new heading with the current responder
-                Console.WriteLine(string.Format("{0} Response:", responder));
+                Console.WriteLine(string.Format("\n{0} Response:", responder));
 
                 // Reset the console color
                 Console.ResetColor();
