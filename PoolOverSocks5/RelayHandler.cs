@@ -28,8 +28,6 @@ namespace PoolOverSocks5
         // the default buffer size for network transfers.
         public Int32 buffersize = 4096; //bytes
 
-        private decimal bandwidthUsed = 0.0m;
-
         public RelayHandler(ConfigurationHandler configuration)
         {
             // Inherit from the main class.
@@ -86,7 +84,6 @@ namespace PoolOverSocks5
                         // Only process if there's data available.
                         if (handler.Available != 0) {
                             int bytesReceived = handler.Receive(bytes);
-                            bandwidthUsed += bytesReceived;
                             data = Encoding.ASCII.GetString(bytes, 0, bytesReceived);
                             Program.LogResponderHandler("Miner", data.Substring(0, data.Length - 1));
                             byte[] message = Encoding.ASCII.GetBytes(data);
@@ -109,11 +106,9 @@ namespace PoolOverSocks5
                         if (relayClient.Available != 0) {
                             byte[] relayRecv = new byte[buffersize];
                             int bytesReceived = relayClient.Client.Receive(relayRecv);
-                            bandwidthUsed += bytesReceived;
                             String dataInFromProxy = Encoding.ASCII.GetString(relayRecv, 0, bytesReceived);
                             Program.LogResponderHandler("Proxy", dataInFromProxy.Substring(0, dataInFromProxy.Length - 1));
                             handler.Send(relayRecv, 0, bytesReceived, SocketFlags.None);
-                            Console.WriteLine("Bandwidth Usage: {0} MB", Decimal.Round((bandwidthUsed / 1024 / 1024), 4).ToString());
                         }
                     } else {
                         // Client has disconnected - close the sockets and restart.
