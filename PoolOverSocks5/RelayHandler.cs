@@ -1,6 +1,5 @@
 ﻿using Starksoft.Aspen.Proxy;
 using System;
-using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -8,25 +7,13 @@ using System.Threading;
 
 namespace PoolOverSocks5
 {
-    class RelayHandler
+    internal class RelayHandler
     {
-        // Placeholder variable to inherit the configuration class.
+        // Class Inheritance
         private ConfigurationHandler configuration;
 
-        // Thread signal.  
-        public ManualResetEvent allDone = new ManualResetEvent(false);
-
-        // Incoming data from the client.  
-        private static string data = null;
-
-        // Client that will connect to the Socks5 Proxy.
-        private Socks5ProxyClient relayClientProxy;
-
-        // TCP client to the pool.
-        private TcpClient relayClient;
-
-        // the default buffer size for network transfers.
-        public Int32 buffersize = 4096; //bytes
+        // TCP Socket for the whole class
+        public TcpListener relay;
 
         public RelayHandler(ConfigurationHandler configuration)
         {
@@ -38,95 +25,98 @@ namespace PoolOverSocks5
          * Relay Worker
          * This is the heart of the applicaition that does all the transpling.
          */
+
         public void Work()
         {
-            // Data buffer for incoming data.  
-            byte[] bytes = new Byte[buffersize];
+            // Start Listening
+            relay = new TcpListener(IPAddress.Parse(configuration.configuration.RelayAddress), configuration.configuration.RelayPort);
+            relay.Start();
 
-            // Establish the local endpoint for the socket.  
-            IPAddress relayIPAddress = IPAddress.Parse(configuration.configuration.RelayAddress);
-            IPEndPoint relayEndpoint = new IPEndPoint(relayIPAddress, configuration.configuration.RelayPort);
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine(string.Format("Relay has started listening on {0}:{1} - Connect your miners to this address!", configuration.configuration.RelayAddress, configuration.configuration.RelayPort));
+            Console.ResetColor();
 
-            // Create a TCP/IP socket.  
-            Socket relayListener = new Socket(relayIPAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+            while (true)
+            {
+                // wait for client connection
+                TcpClient newClient = relay.AcceptTcpClient();
 
-            try {
-                // Bind to the local interface.
-                relayListener.Bind(relayEndpoint);
-                relayListener.Listen(1);
+                Thread clientThread = new Thread(new ParameterizedThreadStart(HandleClient));
+                clientThread.Start(newClient);
+            }
+        }
 
-                // Wait for an incoming connection.
-                Console.WriteLine("Waiting for your miner to connect...");
-                Socket handler = relayListener.Accept();
+        public void HandleClient(object obj)
+        {
+            TcpClient minerClient = (TcpClient)obj;
+            Socks5ProxyClient proxyClient;
+            TcpClient poolClient;
 
-                // A miner has connected.
-                Console.WriteLine("Your miner has connected!");
+            // Try to connect to the socks5 proxy
+            proxyClient = new Socks5ProxyClient(configuration.configuration.ProxyAddress, configuration.configuration.ProxyPort, "", "");
+            Program.LogResponderHandler("Application", "Successfully connected to your Socks5 proxy");
 
-                // Connect to the socks5 proxy
-                relayClientProxy = new Socks5ProxyClient(configuration.configuration.ProxyAddress, configuration.configuration.ProxyPort, "", "");
-                Console.WriteLine("Successfully connected to your socks5 proxy!");
+            poolClient = proxyClient.CreateConnection(configuration.configuration.PoolAddress, configuration.configuration.PoolPort);
+            Program.LogResponderHandler("Application", "Successfully connected to your pool");
 
-                // Connect to the pool
-                relayClient = relayClientProxy.CreateConnection(configuration.configuration.PoolAddress, configuration.configuration.PoolPort);
-                Console.WriteLine("Successfully connected to your pool!");
+            // Register a success
+            Program.LogResponderHandler("Application", "Your miner will now get the data from the pool over the socks5 proxy");
 
-                // Loop while both sockets are connected.
-                while (relayClient.Client.Connected && handler.Connected)
+            Thread.Sleep(500);
+
+            while (minerClient.Connected && poolClient.Connected)
+            {
+                // Small sleep so we don't use 100% of the cpu
+                Thread.Sleep(10);
+
+                // Exchange the data.
+                ExchangeData(minerClient, poolClient);
+            }
+
+            // Close all connections if it's open, this thread is done.
+            SafeClose(minerClient);
+            SafeClose(poolClient);
+            SafeClose(proxyClient.TcpClient);
+        }
+
+        private void ExchangeData(TcpClient miner, TcpClient pool)
+        {
+            try
+            {
+                if (miner.Available != 0)
                 {
-                    // Simple 10ms sleep to not chew up the CPU.
-                    Thread.Sleep(10);
-
-                    // Clear the byte buffer by reinitialization.
-                    bytes = new byte[buffersize];
-
-                    // Make sure we're still connected to the miner.
-                    if (handler.Connected) {
-                        // Only process if there's data available.
-                        if (handler.Available != 0) {
-                            int bytesReceived = handler.Receive(bytes);
-                            data = Encoding.ASCII.GetString(bytes, 0, bytesReceived);
-                            Program.LogResponderHandler("Miner", data.Substring(0, data.Length - 1));
-                            byte[] message = Encoding.ASCII.GetBytes(data);
-                            relayClient.Client.Send(message);
-                        }
-                    } else {
-                        // Client has disconnected - close the sockets and restart.
-                        relayListener.Close();
-
-                        // If the proxy is still connected, disconnect.
-                        if (relayClientProxy.TcpClient.Connected) relayClientProxy.TcpClient.Close();
-
-                        // Re-call the current function.
-                        Work();
-                    }
-
-                    // Make sure we're still connected to the proxy
-                    if (relayClient.Connected) {
-                        // Only process if there's data available.
-                        if (relayClient.Available != 0) {
-                            byte[] relayRecv = new byte[buffersize];
-                            int bytesReceived = relayClient.Client.Receive(relayRecv);
-                            String dataInFromProxy = Encoding.ASCII.GetString(relayRecv, 0, bytesReceived);
-                            Program.LogResponderHandler("Proxy", dataInFromProxy.Substring(0, dataInFromProxy.Length - 1));
-                            handler.Send(relayRecv, 0, bytesReceived, SocketFlags.None);
-                        }
-                    } else {
-                        // Client has disconnected - close the sockets and restart.
-                        relayListener.Close();
-
-                        // Re-call the current function.
-                        Work();
-                    }
+                    byte[] receivedMinerData = new byte[4096];
+                    int bytesReceived = miner.Client.Receive(receivedMinerData);
+                    string data = Encoding.ASCII.GetString(receivedMinerData, 0, bytesReceived);
+                    Program.LogResponderHandler("Miner", data.Substring(0, data.Length - 1));
+                    byte[] message = Encoding.ASCII.GetBytes(data);
+                    pool.Client.Send(message);
                 }
-            } catch ( Exception e) {
-                // Generic exception handling.
-                Console.WriteLine("An exception has occured in the relay.");
-                Console.WriteLine(e.ToString());
 
+                if (pool.Available != 0)
+                {
+                    byte[] recievedPoolData = new byte[4096];
+                    int bytesReceived = pool.Client.Receive(recievedPoolData);
+                    String dataInFromProxy = Encoding.ASCII.GetString(recievedPoolData, 0, bytesReceived);
+                    Program.LogResponderHandler("Proxy", dataInFromProxy.Substring(0, dataInFromProxy.Length - 1));
+                    miner.Client.Send(recievedPoolData, 0, bytesReceived, SocketFlags.None);
+                }
+            }
+            catch (Exception e)
+            {
+                // Can suppress - error while exchanging data, someone disconnected.
+            }
+        }
 
-                // Try to restart the application
-                relayListener.Close();
-                Work();
+        private void SafeClose(TcpClient client)
+        {
+            try
+            {
+                if (client.Connected) client.Close();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(string.Format("Exception occured while closing client:\n{0}", e.ToString()));
             }
         }
     }
