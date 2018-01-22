@@ -25,8 +25,8 @@ $ dotnet run pool.usxmrpool.com:3333 127.0.0.1:9050 127.0.0.1:3333
 
   - Synchronous, only one connection at a time.
   - Command Line Argument parsing
-  - Works with any currency or pool that sends data within the buffer range of 1024 bytes.
-
+  - Works with any currency or pool that sends data within the buffer range of 4096 bytes.
+  - Asynchronous, supports up to 100 miners at once.
 ---
 
 ### How it's built
@@ -50,13 +50,6 @@ dotnet restore
 dotnet build
 dotnet run pool_address:port proxy_address:port relay_address:port
 ```
-
----
-
-### Todos
-
- - Convert relay to asynchronous, multiple clients.
-
 
  [.NET Core]: <https://www.microsoft.com/net/learn/get-started/windows>
  [Starksoft.Aspen]: <https://github.com/bentonstark/starksoft-aspen>
