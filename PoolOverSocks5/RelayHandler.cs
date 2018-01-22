@@ -138,7 +138,7 @@ namespace PoolOverSocks5
         {
             try
             {
-                if (client.Connected) client.Close();
+                if (client != null) if (client.Connected) client.Close();
             }
             catch (Exception e)
             {
