@@ -45,6 +45,7 @@ namespace PoolOverSocks5
             configuration = new ConfigurationStruct();
             ParseCommandLineArguments();
         }
+
         public void ParseCommandLineArguments()
         {
             // Load the CLA (Command Line Arguments) into a string array.
@@ -56,8 +57,8 @@ namespace PoolOverSocks5
                 // print that there was a command line argument error, about the number specified.
                 foreach (string line in cliError) Console.WriteLine(line);
 
-                // let the user read and exit the application.
-                Program.PressAnyKeyToExit();
+                // Exit the application.
+                Environment.Exit(1);
 
             } else {
 

@@ -33,6 +33,12 @@ namespace PoolOverSocks5
         private static RelayHandler relayHandler;
 
         /*
+         * Last Responder for Logger
+         * This is to keep track of the last thing to print to the console
+         */
+        private static string lastResponder;
+
+        /*
          * Main Method
          * The main function of where the appllication enters
          */
@@ -58,6 +64,27 @@ namespace PoolOverSocks5
             Console.WriteLine("Press any key to exit.");
             Console.ReadLine();
             Environment.Exit(1);
+        }
+
+        public static void LogResponderHandler(string responder, string data)
+        {
+            if (lastResponder != responder)
+            {
+                // Update the last responder
+                lastResponder = responder;
+
+                // Change the console color
+                Console.ForegroundColor = ConsoleColor.Green;
+
+                // Print a new heading with the current responder
+                Console.WriteLine(string.Format("{0} Response:", responder));
+
+                // Reset the console color
+                Console.ResetColor();
+            }
+
+            // Print the remaining data
+            Console.WriteLine(data);
         }
     }
 }

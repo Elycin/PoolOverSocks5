@@ -88,7 +88,7 @@ namespace PoolOverSocks5
                             int bytesReceived = handler.Receive(bytes);
                             bandwidthUsed += bytesReceived;
                             data = Encoding.ASCII.GetString(bytes, 0, bytesReceived);
-                            Console.WriteLine("Miner:\n{0}", data.Substring(0, data.Length - 1));
+                            Program.LogResponderHandler("Miner", data.Substring(0, data.Length - 1));
                             byte[] message = Encoding.ASCII.GetBytes(data);
                             relayClient.Client.Send(message);
                         }
@@ -111,7 +111,7 @@ namespace PoolOverSocks5
                             int bytesReceived = relayClient.Client.Receive(relayRecv);
                             bandwidthUsed += bytesReceived;
                             String dataInFromProxy = Encoding.ASCII.GetString(relayRecv, 0, bytesReceived);
-                            Console.WriteLine("Proxy Response:\n{0}", dataInFromProxy.Substring(0, dataInFromProxy.Length - 1));
+                            Program.LogResponderHandler("Proxy", dataInFromProxy.Substring(0, dataInFromProxy.Length - 1));
                             handler.Send(relayRecv, 0, bytesReceived, SocketFlags.None);
                             Console.WriteLine("Bandwidth Usage: {0} MB", Decimal.Round((bandwidthUsed / 1024 / 1024), 4).ToString());
                         }
@@ -126,9 +126,12 @@ namespace PoolOverSocks5
             } catch ( Exception e) {
                 // Generic exception handling.
                 Console.WriteLine("An exception has occured in the relay.");
-
                 Console.WriteLine(e.ToString());
-                Program.PressAnyKeyToExit();
+
+
+                // Try to restart the application
+                relayListener.Close();
+                Work();
             }
         }
     }
