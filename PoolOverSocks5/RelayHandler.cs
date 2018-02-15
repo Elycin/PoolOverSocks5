@@ -10,39 +10,43 @@ namespace PoolOverSocks5
     internal class RelayHandler
     {
         // Class Inheritance
-        private ConfigurationHandler configuration;
+        private ConfigurationHandler configurationClass;
 
+        // Number of miners
         private Int32 minerCount = 0;
 
         // TCP Socket for the whole class
         public TcpListener relay;
 
+        // Class constructor
         public RelayHandler(ConfigurationHandler configuration)
         {
             // Inherit from the main class.
-            this.configuration = configuration;
+            this.configurationClass = configuration;
         }
 
-        /*
-         * Relay Worker
-         * This is the heart of the applicaition that does all the transpling.
-         */
-
+        
+        // Worker - The heart of the application.
         public void Work()
         {
-            // Start Listening
-            relay = new TcpListener(IPAddress.Parse(configuration.configuration.RelayAddress), configuration.configuration.RelayPort);
+            // Create a new listener instance
+            relay = new TcpListener(IPAddress.Parse(configurationClass.configuration.RelayAddress), configurationClass.configuration.RelayPort);
+
+            // Start the TCP Listener
             relay.Start();
 
+            // Notify the console
             Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine(string.Format("Relay has started listening on {0}:{1} - Connect your miners to this address!", configuration.configuration.RelayAddress, configuration.configuration.RelayPort));
+            Console.WriteLine(string.Format("Relay has started listening on {0}:{1} - Connect your miners to this address!", configurationClass.configuration.RelayAddress, configurationClass.configuration.RelayPort));
             Console.ResetColor();
 
+            // Start listening for new clients and repeat.
             while (true)
             {
-                // wait for client connection
+                // Wait for client connection
                 TcpClient newClient = relay.AcceptTcpClient();
 
+                // Createa a new thread and fire it.
                 Thread clientThread = new Thread(new ParameterizedThreadStart(HandleClient));
                 clientThread.Start(newClient);
             }
@@ -50,7 +54,8 @@ namespace PoolOverSocks5
 
         public void HandleClient(object obj)
         {
-            TcpClient minerClient = (TcpClient)obj;
+            // Placehonder varaibles for the connections we'll use.
+            TcpClient minerClient = (TcpClient)obj; // Cast the object as a Net.TcpClient (Polymorphism)
             Socks5ProxyClient proxyClient = null;
             TcpClient poolClient = null;
 
@@ -59,11 +64,12 @@ namespace PoolOverSocks5
             Console.WriteLine("A miner is attempting to connect...");
             minerCount += 1;
 
+            // Handle the main routine
             try
             {
                 // Try to connect to the pool on the socks5 proxy
-                proxyClient = new Socks5ProxyClient(configuration.configuration.ProxyAddress, configuration.configuration.ProxyPort, "", "");
-                poolClient = proxyClient.CreateConnection(configuration.configuration.PoolAddress, configuration.configuration.PoolPort);
+                proxyClient = new Socks5ProxyClient(configurationClass.configuration.ProxyAddress, configurationClass.configuration.ProxyPort, "", "");
+                poolClient = proxyClient.CreateConnection(configurationClass.configuration.PoolAddress, configurationClass.configuration.PoolPort);
                 Console.WriteLine("Successfully connected to your pool!");
 
                 // We can signal that the miner is ready to mine
@@ -74,9 +80,8 @@ namespace PoolOverSocks5
 
                 // Lastly, reset the console color for now.
                 Console.ResetColor();
-
-                Thread.Sleep(500);
-
+                
+                // Main routine that sleeps and exchanges data to prevent high cpu usage. 
                 while (minerClient.Connected && poolClient.Connected)
                 {
                     // Small sleep so we don't use 100% of the cpu
@@ -85,7 +90,8 @@ namespace PoolOverSocks5
                     // Exchange the data.
                     ExchangeData(minerClient, poolClient);
                 }
-            } catch (Exception e)
+            }
+            catch (Exception e)
             {
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine("Failed to connect to the pool or the socks5 proxy - miner will be dropped");
@@ -93,9 +99,9 @@ namespace PoolOverSocks5
             }
 
             // Close all connections if it's open, this thread is done.
-            SafeClose(minerClient);
-            SafeClose(poolClient);
-            SafeClose(proxyClient.TcpClient);
+            SafeCloseAndDispose(minerClient);
+            SafeCloseAndDispose(poolClient);
+            SafeCloseAndDispose(proxyClient.TcpClient);
 
             // Counter and debug.
             minerCount -= 1;
@@ -105,6 +111,7 @@ namespace PoolOverSocks5
             Console.ResetColor();
         }
 
+        // Exchange Data Function, handles the packet interaction between the miner and the pool over the proxy.
         private void ExchangeData(TcpClient miner, TcpClient pool)
         {
             try
@@ -131,10 +138,12 @@ namespace PoolOverSocks5
             catch (Exception e)
             {
                 // Can suppress - error while exchanging data, someone disconnected.
+                return;
             }
         }
 
-        private void SafeClose(TcpClient client)
+        // Attempt to safecy close the 
+        private void SafeCloseAndDispose(TcpClient client)
         {
             try
             {
@@ -143,6 +152,17 @@ namespace PoolOverSocks5
             catch (Exception e)
             {
                 Console.WriteLine(string.Format("Exception occured while closing client:\n{0}", e.ToString()));
+            } 
+            finally
+            {
+                try
+                {
+                    client.Dispose();
+                }
+                catch (Exception e2)
+                {
+                    Console.WriteLine(string.Format("Failed to dispose TcpClient variable:\n{0}", e2.ToString()));
+                }
             }
         }
     }
