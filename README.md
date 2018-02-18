@@ -22,8 +22,6 @@ $ dotnet run pool.usxmrpool.com:3333 127.0.0.1:9050 127.0.0.1:3333
 ---
 
 ### Current Features
-
-  - Synchronous, only one connection at a time.
   - Command Line Argument parsing
   - Works with any currency or pool that sends data within the buffer range of 4096 bytes.
   - Asynchronous, supports up to 100 miners at once.
