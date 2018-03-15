@@ -10,8 +10,7 @@ PoolOverSocks5 is a simple relay application that will create a local socket to 
 Please make sure you have .NET Core installed.
 
 ```sh
-$ dotnet run [pool address:port] [socks5 proxy address:port] [local address:port]
-$ dotnet run pool.usxmrpool.com:3333 127.0.0.1:9050 127.0.0.1:3333
+$ dotnet run
 ```
 
 ![Demo working with XMR-Stak, and Tor](https://raw.githubusercontent.com/Elycin/PoolOverSocks5/master/PoolOverSocks5/images/xmr_stak_tor_demo.png)
@@ -31,7 +30,7 @@ $ dotnet run pool.usxmrpool.com:3333 127.0.0.1:9050 127.0.0.1:3333
 
 * [.NET Core] - The multiplatform framework that this is written in
 * [Starksoft.Aspen] - .NET Library for handling TCP sockets over Socks5
-
+* [Newtonsoft.JSON] - .NET Library for handling JSON
 ---
 
 ### Contribution
@@ -46,17 +45,21 @@ git clone https://github.com/Elycin/PoolOverSocks5.git
 cd PoolOverSocks5/PoolOverSocks5
 dotnet restore
 dotnet build
-dotnet run pool_address:port proxy_address:port relay_address:port
+dotnet run 
 ```
 
  [.NET Core]: <https://www.microsoft.com/net/learn/get-started/windows>
  [Starksoft.Aspen]: <https://github.com/bentonstark/starksoft-aspen>
-
+ [Newtonsoft.JSON]: <https://www.newtonsoft.com/json>
+ 
 ---
+
+### Special Thanks
+- [okkero](https://github.com/okkero) - Linq assistance and issue contribution
 
 ### Donations
 Appreciate my work? thanks!  
-If you'd like to buy me a drink you can donate using one of the addresses below:
+If you would like to buy me a drink of some sort you can donate using one of the addresses below!
 ```
 BTC: 1MwzVSXVfm1Gfvtc2n3vqam8434cGA5GgT
 ETH: 0xA6b57B0d2b22c6B0031CdC6c3a2953eF93d368e8
