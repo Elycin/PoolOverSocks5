@@ -31,3 +31,6 @@ msbuild.wrn
 
 # Visual Studio 2015
 .vs/
+
+# Configuration files
+config.json
