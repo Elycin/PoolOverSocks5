@@ -68,10 +68,10 @@ namespace PoolOverSocks5.Socket
             try
             {
                 // Try to connect to the proxy.
-                ProxyConnection = new Socks5ProxyClient(configuration.configuration.ProxyAddress, configuration.configuration.ProxyPort, "", "");
+                ProxyConnection = new Socks5ProxyClient(configuration.GetProxyAddress(), configuration.GetProxyPort(), "", "");
 
                 // Try to connect to the pool
-                PoolConnection = ProxyConnection.CreateConnection(configuration.configuration.PoolAddress, configuration.configuration.PoolPort);
+                PoolConnection = ProxyConnection.CreateConnection(configuration.GetPoolAddress(), configuration.GetPoolPort());
 
                 // Write to the console that the pool has beenc onnected.
                 Program.ConsoleWriteLineWithColor(ConsoleColor.Green, "Successfully connected to your pool!");

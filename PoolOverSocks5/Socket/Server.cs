@@ -2,6 +2,7 @@
 using Starksoft.Aspen.Proxy;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -9,10 +10,10 @@ using System.Threading;
 
 namespace PoolOverSocks5
 {
-    internal class Server
+    class Server
     {
         // Class Inheritance
-        private ConfigurationHandler configurationClass;
+        private ConfigurationHandler configuration;
 
         // Miner Connections
         private List<Miner> ConnectedMiners;
@@ -28,21 +29,28 @@ namespace PoolOverSocks5
             ConnectedMiners = new List<Miner>();
 
             // Inherit from the main class.
-            this.configurationClass = configuration;
+            this.configuration = configuration;
         }
 
         
         // Worker - The heart of the application.
         public void Work()
         {
-            // Create a new listener instance
-            ServerConnection = new TcpListener(IPAddress.Parse(configurationClass.configuration.RelayAddress), configurationClass.configuration.RelayPort);
+            
+            try
+            {
+                // Create a new listener instance
+                ServerConnection = new TcpListener(IPAddress.Parse(configuration.GetRelayAddress()), configuration.GetRelayPort());
 
-            // Start the TCP Listener
-            ServerConnection.Start();
+                // Start the TCP Listener
+                ServerConnection.Start();
+            } catch (Exception exception)
+            {
+                FailedToBindException(exception);
+            }
 
             // Notify the console
-            string pendingData = string.Format("Relay has started listening on {0}:{1} - Connect your miners to this address!", configurationClass.configuration.RelayAddress, configurationClass.configuration.RelayPort);
+            string pendingData = string.Format("Please connect your miners to {0}:{1} to get started.\n", configuration.GetRelayAddress(), configuration.GetRelayPort());
             Program.ConsoleWriteLineWithColor(ConsoleColor.Green, pendingData);
 
             // Start listening for new clients and repeat.
@@ -52,11 +60,10 @@ namespace PoolOverSocks5
                 TcpClient newClient = ServerConnection.AcceptTcpClient();
 
                 // Cleanup old miners
-                List<Miner> historicConnectedMiners = new List<Miner>(ConnectedMiners);
-                foreach (Miner currentMiner in historicConnectedMiners) if (currentMiner.wantsToBeDisposed) ConnectedMiners.Remove(currentMiner);
+                ConnectedMiners = ConnectedMiners.Where(miner => !miner.wantsToBeDisposed).ToList();
 
                 // Create a new miner
-                Miner newMiner = new Miner(ConnectedMiners.Count + 1, configurationClass, newClient);
+                Miner newMiner = new Miner(ConnectedMiners.Count + 1, configuration, newClient);
 
                 // Keep track of it
                 ConnectedMiners.Add(newMiner);
@@ -65,5 +72,16 @@ namespace PoolOverSocks5
                 Program.ConsoleWriteLineWithColor(ConsoleColor.Yellow, String.Format("There are now {0} miner(s) connected.", ConnectedMiners.Count));
             }
         }
-    }
+
+        public void FailedToBindException(Exception exception)
+        {
+            Program.ConsoleWriteLineWithColor(ConsoleColor.Red, (new String('=', Console.BufferWidth - 1)));
+            Program.ConsoleWriteLineWithColor(ConsoleColor.Red, string.Format("Failed to bind relay to {0}:{1}.\n", configuration.GetRelayAddress(), configuration.GetRelayPort()));
+            Console.WriteLine(exception.ToString());
+            Console.WriteLine("\nPress any key to exit.");
+            Program.ConsoleWriteLineWithColor(ConsoleColor.Red, (new String('=', Console.BufferWidth - 1)));
+            Console.ReadLine();
+            Environment.Exit(1);
+        }
+    }    
 }

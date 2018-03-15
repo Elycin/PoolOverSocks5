@@ -44,11 +44,11 @@ namespace PoolOverSocks5
          */
         static void Main(string[] args)
         {
-            // Initialize a new ConfugrationHandler into the placeholder variable.
-            configurationHandler = new ConfigurationHandler();
-
             // Print out the MOTD.
             foreach (string line in motd) Console.WriteLine(line);
+
+            // Initialize a new ConfugrationHandler into the placeholder variable.
+            configurationHandler = new ConfigurationHandler();
 
             // Start the relay.
             relayHandler = new Server(configurationHandler);
