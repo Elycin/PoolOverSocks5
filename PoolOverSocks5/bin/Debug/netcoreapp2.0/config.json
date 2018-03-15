@@ -1,9 +1,0 @@
-{
-  "Relay Address": "127.0.0.1",
-  "Relay Port": 3333,
-  "Relay Concurrent Connections": 3333,
-  "Proxy Address": "127.0.0.1",
-  "Proxy Port": 9050,
-  "Pool Address": "pool.supportxmr.com",
-  "Pool Port": 3333
-}
