@@ -30,7 +30,7 @@ namespace PoolOverSocks5
          * Relay Handler
          * This is the actual class that will handle the networking magic and relay data along the socks5 proxy.
          */
-        private static RelayHandler relayHandler;
+        private static Server relayHandler;
 
         /*
          * Last Responder for Logger
@@ -51,7 +51,7 @@ namespace PoolOverSocks5
             foreach (string line in motd) Console.WriteLine(line);
 
             // Start the relay.
-            relayHandler = new RelayHandler(configurationHandler);
+            relayHandler = new Server(configurationHandler);
             relayHandler.Work();
         }
 
@@ -73,18 +73,19 @@ namespace PoolOverSocks5
                 // Update the last responder
                 lastResponder = responder;
 
-                // Change the console color
-                Console.ForegroundColor = ConsoleColor.Green;
-
-                // Print a new heading with the current responder
-                Console.WriteLine(string.Format("\n{0} Response:", responder));
-
-                // Reset the console color
-                Console.ResetColor();
+                // Write
+                ConsoleWriteLineWithColor(ConsoleColor.Green, string.Format("\n{0} Response:", responder));
             }
 
             // Print the remaining data
             Console.WriteLine(data);
+        }
+
+        public static void ConsoleWriteLineWithColor(ConsoleColor color, string message)
+        {
+            Console.ForegroundColor = color;
+            Console.WriteLine(message);
+            Console.ResetColor();
         }
     }
 }
